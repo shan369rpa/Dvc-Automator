@@ -44,13 +44,37 @@ function getElementByXPath(xpath) {
     return document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 }
 
-// Giả lập nhập text vào ô input của các platform React/Vue
+// Giả lập nhập text vào ô input của các platform React/Vue/jQuery
 function setInputValue(inputEl, value) {
     if (!inputEl) return;
+    inputEl.focus();
     inputEl.value = value;
     inputEl.dispatchEvent(new Event('input', { bubbles: true }));
     inputEl.dispatchEvent(new Event('change', { bubbles: true }));
+    inputEl.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Enter', keyCode: 13 }));
+    inputEl.blur();
     inputEl.dispatchEvent(new Event('blur', { bubbles: true }));
+}
+
+function formatDateToDDMMYYYY(dateString) {
+    if (!dateString) return '';
+    let d = dateString.split(' ')[0]; // cắt bỏ giờ phút nếu có
+    let parts = d.split('/');
+    if (parts.length === 3) {
+        let p1 = parts[0].padStart(2, '0');
+        let p2 = parts[1].padStart(2, '0');
+        let p3 = parts[2];
+        if (p3.length === 2) p3 = '20' + p3;
+        return `${p1}/${p2}/${p3}`;
+    }
+    return d;
+}
+
+function getTodayDDMMYYYY() {
+    let today = new Date();
+    let dd = String(today.getDate()).padStart(2, '0');
+    let mm = String(today.getMonth() + 1).padStart(2, '0');
+    return `${dd}/${mm}/${today.getFullYear()}`;
 }
 
 async function processUser(user, state, data) {
@@ -72,17 +96,24 @@ async function processUser(user, state, data) {
         let cccdInputs = document.querySelectorAll('input#guest_txtIDCARD_NUMBER');
         let cccdInput = Array.from(cccdInputs).find(el => el.offsetParent !== null) || cccdInputs[cccdInputs.length - 1];
 
-        let reasonInputs = document.querySelectorAll('textarea#guest_txtREASON');
-        let reasonInput = Array.from(reasonInputs).find(el => el.offsetParent !== null) || reasonInputs[reasonInputs.length - 1];
+        // Tìm thẻ input Thời gian lưu trú (Từ ngày / Đến ngày)
+        let dateFromInputs = document.querySelectorAll('input#guest_txtDATE_FROM, input[placeholder*="Từ ngày"]');
+        let dateFromInput = Array.from(dateFromInputs).find(el => el.offsetParent !== null) || dateFromInputs[dateFromInputs.length - 1];
 
-        // Tìm thẻ input Thời gian lưu trú (Đến ngày / Ngày Rời đi)
         let dateToInputs = document.querySelectorAll('input#guest_txtDATE_TO, input[placeholder*="Đến ngày"]');
         let dateToInput = Array.from(dateToInputs).find(el => el.offsetParent !== null) || dateToInputs[dateToInputs.length - 1];
 
         if (nameInput) setInputValue(nameInput, user.hoTen);
         if (cccdInput) setInputValue(cccdInput, user.soCCCD);
         if (reasonInput) setInputValue(reasonInput, user.lyDo);
-        if (dateToInput && user.ngayDi) setInputValue(dateToInput, user.ngayDi);
+
+        // Xử lý tự động gõ Ngày đến và Ngày đi
+        if (dateFromInput && (!dateFromInput.value || dateFromInput.value.trim() === '')) {
+            setInputValue(dateFromInput, getTodayDDMMYYYY());
+        }
+        if (dateToInput && user.ngayDi) {
+            setInputValue(dateToInput, formatDateToDDMMYYYY(user.ngayDi));
+        }
 
         // Đợi 1 chút cho frontend validate
         await sleep(1000);
