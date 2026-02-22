@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Dịch Vụ Công Automator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h2>Tự động Nhập Lưu Trú</h2>
+    
+    <div class="form-group">
+      <label for="csvFileInput">1. Chọn file Google Sheet (CSV):</label>
+      <input type="file" id="csvFileInput" accept=".csv" />
+      <small>Lưu ý: Tải sheet Data dưới định dạng .csv</small>
+    </div>
+
+    <div class="status-box">
+      <p id="statusText">Trạng thái: Chưa tải file</p>
+      <p id="progressText">Tiến độ: 0 / 0</p>
+    </div>
+
+    <div class="button-group">
+      <button id="startBtn" class="btn primary" disabled>Bắt đầu Nhập</button>
+      <button id="pauseBtn" class="btn danger" disabled>Dừng</button>
+      <button id="resetBtn" class="btn secondary">Reset</button>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

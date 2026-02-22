@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Dịch Vụ Công Automator",
+  "version": "1.0",
+  "description": "Tự động điền phần đăng ký thêm người lưu trú trên hệ thống Dịch vụ công.",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://dichvucong.dancuquocgia.gov.vn/*",
+        "*://*.dichvucong.dancuquocgia.gov.vn/*"
+      ],
+      "js": [
+        "content.js"
+      ]
+    }
+  ]
+}
