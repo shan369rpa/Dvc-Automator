@@ -5,10 +5,10 @@ if (typeof window.dvcAutomatorInjected === 'undefined') {
     let checkInterval = null;
 
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-        if (request.action === "START_AUTOMATION") {
+        if (request.action === "START_AUTOMATION_V2") {
             isRunning = true;
             startProcess();
-        } else if (request.action === "STOP_AUTOMATION") {
+        } else if (request.action === "STOP_AUTOMATION_V2") {
             isRunning = false;
             if (checkInterval) clearInterval(checkInterval);
         }

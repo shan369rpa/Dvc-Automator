@@ -77,9 +77,9 @@ document.addEventListener('DOMContentLoaded', () => {
               chrome.storage.local.set({ automationState: state }, () => updateUI(state));
               return;
             }
-            chrome.tabs.sendMessage(tabs[0].id, { action: "START_AUTOMATION" }, function (response) {
-              if (chrome.runtime.lastError) {
-                // Tự động tiêm (inject) script nếu tab mục tiêu chưa có content.js
+            chrome.tabs.sendMessage(tabs[0].id, { action: "START_AUTOMATION_V2" }, function (response) {
+              if (chrome.runtime.lastError || !response || response.version !== "v2") {
+                // Tự động tiêm (inject) script nếu tab mục tiêu chưa có content.js V2
                 chrome.scripting.executeScript({
                   target: { tabId: tabs[0].id },
                   files: ['content.js']
@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     chrome.storage.local.set({ automationState: state }, () => updateUI(state));
                   } else {
                     // Tiêm mã thành công, gọi lệnh chạy gốc một lần nữa
-                    chrome.tabs.sendMessage(tabs[0].id, { action: "START_AUTOMATION" });
+                    chrome.tabs.sendMessage(tabs[0].id, { action: "START_AUTOMATION_V2" });
                   }
                 });
               }
@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
           updateUI(res.automationState);
           chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
             if (tabs[0] && tabs[0].url.includes("dancuquocgia")) {
-              chrome.tabs.sendMessage(tabs[0].id, { action: "STOP_AUTOMATION" }, function (response) {
+              chrome.tabs.sendMessage(tabs[0].id, { action: "STOP_AUTOMATION_V2" }, function (response) {
                 let lastError = chrome.runtime.lastError; // ignore error
               });
             }
@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
       updateUI(defaultState);
       chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         if (tabs[0] && tabs[0].url.includes("dancuquocgia")) {
-          chrome.tabs.sendMessage(tabs[0].id, { action: "STOP_AUTOMATION" }, function (response) {
+          chrome.tabs.sendMessage(tabs[0].id, { action: "STOP_AUTOMATION_V2" }, function (response) {
             let lastError = chrome.runtime.lastError; // ignore error
           });
         }
