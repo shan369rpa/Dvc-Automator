@@ -79,9 +79,20 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             chrome.tabs.sendMessage(tabs[0].id, { action: "START_AUTOMATION" }, function (response) {
               if (chrome.runtime.lastError) {
-                alert("LỖI KẾT NỐI: Trình duyệt chưa tải xong mã lệnh. Vui lòng bấm F5 (Tải lại) trang Dịch vụ công và thử lại!");
-                state.isRunning = false;
-                chrome.storage.local.set({ automationState: state }, () => updateUI(state));
+                // Tự động tiêm (inject) script nếu tab mục tiêu chưa có content.js
+                chrome.scripting.executeScript({
+                  target: { tabId: tabs[0].id },
+                  files: ['content.js']
+                }, () => {
+                  if (chrome.runtime.lastError) {
+                    alert("LỖI HỆ THỐNG KIỂM SOÁT: Trình duyệt từ chối tự cài đặt tiện ích. Vui lòng F5 (Tải lại) trang web thủ công!");
+                    state.isRunning = false;
+                    chrome.storage.local.set({ automationState: state }, () => updateUI(state));
+                  } else {
+                    // Tiêm mã thành công, gọi lệnh chạy gốc một lần nữa
+                    chrome.tabs.sendMessage(tabs[0].id, { action: "START_AUTOMATION" });
+                  }
+                });
               }
             });
           }
