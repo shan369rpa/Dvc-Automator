@@ -5,7 +5,8 @@
   "description": "Tự động điền phần đăng ký thêm người lưu trú trên hệ thống Dịch vụ công.",
   "permissions": [
     "activeTab",
-    "scripting"
+    "scripting",
+    "storage"
   ],
   "action": {
     "default_popup": "popup.html"
