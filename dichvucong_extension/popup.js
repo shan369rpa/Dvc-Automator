@@ -144,6 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const headers = Object.keys(data[0]);
     const nameCol = headers.find(h => h === 'Họ và tên');
     const idCol = headers.find(h => h.includes('Số CC') || h.includes('định danh') || h === 'Số CC/ CCCD/ Số định danh');
+    const ngayDiCol = headers.find(h => h.includes('Ngày rời đi') || h === 'Ngay roi di');
 
     if (!nameCol || !idCol) {
       alert(`Thiếu cột dữ liệu quan trọng trong CSV.
@@ -160,6 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
         results.push({
           hoTen: row[nameCol].toString().trim(),
           soCCCD: (row[idCol] || '').toString().trim(),
+          ngayDi: ngayDiCol ? (row[ngayDiCol] || '').toString().trim() : '',
           lyDo: 'Tu Học' // Mặc định lý do
         });
       }

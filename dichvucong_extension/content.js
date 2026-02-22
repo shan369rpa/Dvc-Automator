@@ -46,9 +46,11 @@ function getElementByXPath(xpath) {
 
 // Giả lập nhập text vào ô input của các platform React/Vue
 function setInputValue(inputEl, value) {
+    if (!inputEl) return;
     inputEl.value = value;
     inputEl.dispatchEvent(new Event('input', { bubbles: true }));
     inputEl.dispatchEvent(new Event('change', { bubbles: true }));
+    inputEl.dispatchEvent(new Event('blur', { bubbles: true }));
 }
 
 async function processUser(user, state, data) {
@@ -73,9 +75,14 @@ async function processUser(user, state, data) {
         let reasonInputs = document.querySelectorAll('textarea#guest_txtREASON');
         let reasonInput = Array.from(reasonInputs).find(el => el.offsetParent !== null) || reasonInputs[reasonInputs.length - 1];
 
+        // Tìm thẻ input Thời gian lưu trú (Đến ngày / Ngày Rời đi)
+        let dateToInputs = document.querySelectorAll('input#guest_txtDATE_TO, input[placeholder*="Đến ngày"]');
+        let dateToInput = Array.from(dateToInputs).find(el => el.offsetParent !== null) || dateToInputs[dateToInputs.length - 1];
+
         if (nameInput) setInputValue(nameInput, user.hoTen);
         if (cccdInput) setInputValue(cccdInput, user.soCCCD);
         if (reasonInput) setInputValue(reasonInput, user.lyDo);
+        if (dateToInput && user.ngayDi) setInputValue(dateToInput, user.ngayDi);
 
         // Đợi 1 chút cho frontend validate
         await sleep(1000);
