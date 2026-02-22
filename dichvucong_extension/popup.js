@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
       chrome.storage.local.set({ formData: parsedData, automationState: state }, () => {
         updateUI(state);
         if (parsedData.length === 0) {
-          alert('Không tìm thấy dữ liệu nào thoả mãn: Check in = "Y" và Trang thai = "Dat"');
+          alert('Không tìm thấy dữ liệu hợp lệ trong file!');
         }
       });
     };
@@ -122,41 +122,49 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Hàm parse CSV đơn giản, có xử lý quotes
+  // Sử dụng thư viện PapaParse để xử lý triệt để file CSV phức tạp và Không Lọc
   function parseAndFilterCSV(text) {
-    const lines = text.split('\n');
-    if (lines.length < 2) return [];
+    const parsed = Papa.parse(text, {
+      header: true,
+      skipEmptyLines: true,
+      transformHeader: function (h) {
+        return h.trim().replace(/^"|"$/g, '');
+      }
+    });
 
-    // Tìm index của các cột bằng Regex (bảo vệ dấu phẩy nằm trong ngoặc kép)
-    const headers = lines[0].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(h => h.trim().replace(/^"|"$/g, ''));
-    const nameIdx = headers.findIndex(h => h === 'Họ và tên');
-    const idIdx = headers.findIndex(h => h.includes('Số CC') || h.includes('định danh') || h === 'Số CC/ CCCD/ Số định danh');
-    const checkinIdx = headers.findIndex(h => h === 'Check in');
-    const statusIdx = headers.findIndex(h => h === 'Trang thai' || h === 'Trạng thái');
+    if (parsed.errors.length > 0 && parsed.data.length === 0) {
+      alert("Lỗi đọc file CSV: " + parsed.errors[0].message);
+      return [];
+    }
 
-    if (nameIdx === -1 || idIdx === -1) {
-      alert('File CSV không đúng định dạng. Cột "Họ và tên" hoặc "Số định danh" không tồn tại.');
+    const data = parsed.data;
+    if (data.length === 0) return [];
+
+    // Tìm tên cột chính xác (trong trường hợp header có ký tự mờ ảo)
+    const headers = Object.keys(data[0]);
+    const nameCol = headers.find(h => h === 'Họ và tên');
+    const idCol = headers.find(h => h.includes('Số CC') || h.includes('định danh') || h === 'Số CC/ CCCD/ Số định danh');
+
+    if (!nameCol || !idCol) {
+      alert(`Thiếu cột dữ liệu quan trọng trong CSV.
+        Đã tìm thấy:
+        Tên: ${nameCol || 'Mất'}
+        ID: ${idCol || 'Mất'}`);
       return [];
     }
 
     const results = [];
-    for (let i = 1; i < lines.length; i++) {
-      if (!lines[i].trim()) continue;
-
-      // Xử lý split CSV có ngoặc kép
-      const row = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(item => item.trim().replace(/^"|"$/g, ''));
-
-      const checkin = (row[checkinIdx] || '').trim();
-      const status = (row[statusIdx] || '').trim();
-
-      if (checkin.toUpperCase() === 'Y' && status.toLowerCase() === 'dat') {
+    for (const row of data) {
+      // Parse luôn mọi dòng có Họ Tên
+      if (row[nameCol] && row[nameCol].toString().trim() !== '') {
         results.push({
-          hoTen: row[nameIdx],
-          soCCCD: row[idIdx],
-          lyDo: 'Tu Học'
+          hoTen: row[nameCol].toString().trim(),
+          soCCCD: (row[idCol] || '').toString().trim(),
+          lyDo: 'Tu Học' // Mặc định lý do
         });
       }
     }
+
     return results;
   }
 

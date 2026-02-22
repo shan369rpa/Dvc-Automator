@@ -28,7 +28,7 @@ Vì đây là tiện ích dùng nội bộ, bạn cần cài đặt thủ công 
 
 3. Bấm vào **biểu tượng của Extension** Dịch Vụ Công Automator trên góc trình duyệt.
 4. Trong cửa sổ hiện ra, bấm **Chọn file (Choose File)** và tìm đến file `.csv` bạn vừa tải về ban nãy.
-5. Lúc này công cụ sẽ lọc những người có `Check in = "Y"` và `Trang thai = "Dat"`.
+5. Lúc này công cụ sẽ đọc toàn bộ các dòng có chứa tên trong file CSV.
 6. Bấm nút **Bắt đầu Nhập**. 
 7. Tiện ích sẽ tự động quét, tìm form đăng ký, điền Họ Tên, CCCD, Lý do (Tu học) và bấm "Lưu lại". Bạn chỉ cần ngồi xem cho đến khi hoàn thành toàn bộ.
 
