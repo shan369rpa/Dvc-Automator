@@ -50,11 +50,16 @@ if (typeof window.dvcAutomatorInjected === 'undefined') {
     // Giả lập nhập text vào ô input của các platform React/Vue/jQuery
     function setInputValue(inputEl, value) {
         if (!inputEl) return;
+        inputEl.removeAttribute('readonly');
         inputEl.focus();
-        inputEl.value = value;
+
+        // Bypass React/Vue value setter override
+        let nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+        nativeInputValueSetter.call(inputEl, value);
+
         inputEl.dispatchEvent(new Event('input', { bubbles: true }));
         inputEl.dispatchEvent(new Event('change', { bubbles: true }));
-        inputEl.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Enter', keyCode: 13 }));
+        inputEl.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Enter', keyCode: 13, which: 13 }));
         inputEl.blur();
         inputEl.dispatchEvent(new Event('blur', { bubbles: true }));
     }
@@ -99,15 +104,19 @@ if (typeof window.dvcAutomatorInjected === 'undefined') {
             let cccdInputs = document.querySelectorAll('input#guest_txtIDCARD_NUMBER');
             let cccdInput = Array.from(cccdInputs).find(el => el.offsetParent !== null) || cccdInputs[cccdInputs.length - 1];
 
+            let roomNumberInputs = document.querySelectorAll('input#guest_txtROOM_NUMBER, input[placeholder*="Số phòng"]');
+            let roomNumberInput = Array.from(roomNumberInputs).find(el => el.offsetParent !== null) || roomNumberInputs[roomNumberInputs.length - 1];
+
             // Tìm thẻ input Thời gian lưu trú (Từ ngày / Đến ngày)
-            let dateFromInputs = document.querySelectorAll('input#guest_txtDATE_FROM, input[placeholder*="Từ ngày"]');
+            let dateFromInputs = document.querySelectorAll('input#guest_txtSTART_DATE, input[placeholder*="Từ ngày"]');
             let dateFromInput = Array.from(dateFromInputs).find(el => el.offsetParent !== null) || dateFromInputs[dateFromInputs.length - 1];
 
-            let dateToInputs = document.querySelectorAll('input#guest_txtDATE_TO, input[placeholder*="Đến ngày"]');
+            let dateToInputs = document.querySelectorAll('input#guest_txtEND_DATE, input[placeholder*="Đến ngày"]');
             let dateToInput = Array.from(dateToInputs).find(el => el.offsetParent !== null) || dateToInputs[dateToInputs.length - 1];
 
             if (nameInput) setInputValue(nameInput, user.hoTen);
             if (cccdInput) setInputValue(cccdInput, user.soCCCD);
+            if (roomNumberInput) setInputValue(roomNumberInput, user.soPhong);
 
             let reasonInputs = document.querySelectorAll('textarea#guest_txtREASON');
             let reasonInput = Array.from(reasonInputs).find(el => el.offsetParent !== null) || reasonInputs[reasonInputs.length - 1];
