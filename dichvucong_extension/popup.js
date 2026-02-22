@@ -67,10 +67,23 @@ document.addEventListener('DOMContentLoaded', () => {
       state.isRunning = true;
       chrome.storage.local.set({ automationState: state }, () => {
         updateUI(state);
-        // Gửi thông báo tới tab hiện tại để bắt đầu
+        // Gửi thông báo tới tab hiện hành
         chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
           if (tabs[0]) {
-            chrome.tabs.sendMessage(tabs[0].id, { action: "START_AUTOMATION" });
+            if (!tabs[0].url.includes("dichvucong.dancuquocgia.gov.vn")) {
+              alert("LỖI: Bạn phải mở tiện ích này khi đang ở màn hình trang Dịch vụ công Bộ Công An!");
+              // revert state
+              state.isRunning = false;
+              chrome.storage.local.set({ automationState: state }, () => updateUI(state));
+              return;
+            }
+            chrome.tabs.sendMessage(tabs[0].id, { action: "START_AUTOMATION" }, function (response) {
+              if (chrome.runtime.lastError) {
+                alert("LỖI KẾT NỐI: Trình duyệt chưa tải xong mã lệnh. Vui lòng bấm F5 (Tải lại) trang Dịch vụ công và thử lại!");
+                state.isRunning = false;
+                chrome.storage.local.set({ automationState: state }, () => updateUI(state));
+              }
+            });
           }
         });
       });
@@ -84,8 +97,10 @@ document.addEventListener('DOMContentLoaded', () => {
         chrome.storage.local.set({ automationState: res.automationState }, () => {
           updateUI(res.automationState);
           chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-            if (tabs[0]) {
-              chrome.tabs.sendMessage(tabs[0].id, { action: "STOP_AUTOMATION" });
+            if (tabs[0] && tabs[0].url.includes("dancuquocgia")) {
+              chrome.tabs.sendMessage(tabs[0].id, { action: "STOP_AUTOMATION" }, function (response) {
+                let lastError = chrome.runtime.lastError; // ignore error
+              });
             }
           });
         });
@@ -98,8 +113,10 @@ document.addEventListener('DOMContentLoaded', () => {
     chrome.storage.local.set({ automationState: defaultState }, () => {
       updateUI(defaultState);
       chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-        if (tabs[0]) {
-          chrome.tabs.sendMessage(tabs[0].id, { action: "STOP_AUTOMATION" });
+        if (tabs[0] && tabs[0].url.includes("dancuquocgia")) {
+          chrome.tabs.sendMessage(tabs[0].id, { action: "STOP_AUTOMATION" }, function (response) {
+            let lastError = chrome.runtime.lastError; // ignore error
+          });
         }
       });
     });
