@@ -54,8 +54,23 @@ if (typeof window.dvcAutomatorInjected === 'undefined') {
         inputEl.focus();
 
         // Bypass React/Vue value setter override
-        let nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
-        nativeInputValueSetter.call(inputEl, value);
+        try {
+            let tagName = inputEl.tagName.toLowerCase();
+            let nativeInputValueSetter;
+            if (tagName === 'textarea') {
+                nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
+            } else {
+                nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+            }
+
+            if (nativeInputValueSetter) {
+                nativeInputValueSetter.call(inputEl, value);
+            } else {
+                inputEl.value = value;
+            }
+        } catch (e) {
+            inputEl.value = value;
+        }
 
         inputEl.dispatchEvent(new Event('input', { bubbles: true }));
         inputEl.dispatchEvent(new Event('change', { bubbles: true }));
