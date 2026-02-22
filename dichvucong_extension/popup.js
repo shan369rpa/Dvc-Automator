@@ -46,10 +46,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = function(event) {
+    reader.onload = function (event) {
       const text = event.target.result;
       parsedData = parseAndFilterCSV(text);
-      
+
       const state = { isRunning: false, currentIndex: 0, total: parsedData.length };
       chrome.storage.local.set({ formData: parsedData, automationState: state }, () => {
         updateUI(state);
@@ -68,8 +68,8 @@ document.addEventListener('DOMContentLoaded', () => {
       chrome.storage.local.set({ automationState: state }, () => {
         updateUI(state);
         // Gửi thông báo tới tab hiện tại để bắt đầu
-        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-          if(tabs[0]) {
+        chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+          if (tabs[0]) {
             chrome.tabs.sendMessage(tabs[0].id, { action: "START_AUTOMATION" });
           }
         });
@@ -79,12 +79,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   pauseBtn.addEventListener('click', () => {
     chrome.storage.local.get(['automationState'], (res) => {
-      if(res.automationState) {
+      if (res.automationState) {
         res.automationState.isRunning = false;
         chrome.storage.local.set({ automationState: res.automationState }, () => {
           updateUI(res.automationState);
-          chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-            if(tabs[0]) {
+          chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+            if (tabs[0]) {
               chrome.tabs.sendMessage(tabs[0].id, { action: "STOP_AUTOMATION" });
             }
           });
@@ -97,8 +97,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const defaultState = { isRunning: false, currentIndex: 0, total: parsedData.length };
     chrome.storage.local.set({ automationState: defaultState }, () => {
       updateUI(defaultState);
-      chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-        if(tabs[0]) {
+      chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+        if (tabs[0]) {
           chrome.tabs.sendMessage(tabs[0].id, { action: "STOP_AUTOMATION" });
         }
       });
@@ -110,8 +110,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const lines = text.split('\n');
     if (lines.length < 2) return [];
 
-    // Tìm index của các cột
-    const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+    // Tìm index của các cột bằng Regex (bảo vệ dấu phẩy nằm trong ngoặc kép)
+    const headers = lines[0].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(h => h.trim().replace(/^"|"$/g, ''));
     const nameIdx = headers.findIndex(h => h === 'Họ và tên');
     const idIdx = headers.findIndex(h => h.includes('Số CC') || h.includes('định danh') || h === 'Số CC/ CCCD/ Số định danh');
     const checkinIdx = headers.findIndex(h => h === 'Check in');
@@ -128,9 +128,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Xử lý split CSV có ngoặc kép
       const row = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(item => item.trim().replace(/^"|"$/g, ''));
-      
-      const checkin = row[checkinIdx] || '';
-      const status = row[statusIdx] || '';
+
+      const checkin = (row[checkinIdx] || '').trim();
+      const status = (row[statusIdx] || '').trim();
 
       if (checkin.toUpperCase() === 'Y' && status.toLowerCase() === 'dat') {
         results.push({
@@ -142,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     return results;
   }
-  
+
   // Lắng nghe thay đổi tiến độ từ content script để update UI nhanh
   chrome.storage.onChanged.addListener((changes, namespace) => {
     if (namespace === 'local' && changes.automationState) {
