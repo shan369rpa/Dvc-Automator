@@ -62,10 +62,16 @@ async function processUser(user, state, data) {
             await sleep(2000);
         }
 
-        // 2. Định dạng lại DOM selector dựa vào phân tích thực tế
-        let nameInput = document.querySelector('input#guest_txtCITIZENNAME');
-        let cccdInput = document.querySelector('input#guest_txtIDCARD_NUMBER');
-        let reasonInput = document.querySelector('textarea#guest_txtREASON');
+        // 2. Định dạng lại DOM selector để chống lỗi trùng lặp ID (Duplicate ID) từ Website gốc
+        // Lấy tất cả elements có ID đó, chọn ra cái nào đang thực sự hiển thị trên Layout (offsetParent !== null)
+        let nameInputs = document.querySelectorAll('input#guest_txtCITIZENNAME');
+        let nameInput = Array.from(nameInputs).find(el => el.offsetParent !== null) || nameInputs[nameInputs.length - 1];
+
+        let cccdInputs = document.querySelectorAll('input#guest_txtIDCARD_NUMBER');
+        let cccdInput = Array.from(cccdInputs).find(el => el.offsetParent !== null) || cccdInputs[cccdInputs.length - 1];
+
+        let reasonInputs = document.querySelectorAll('textarea#guest_txtREASON');
+        let reasonInput = Array.from(reasonInputs).find(el => el.offsetParent !== null) || reasonInputs[reasonInputs.length - 1];
 
         if (nameInput) setInputValue(nameInput, user.hoTen);
         if (cccdInput) setInputValue(cccdInput, user.soCCCD);
@@ -74,8 +80,9 @@ async function processUser(user, state, data) {
         // Đợi 1 chút cho frontend validate
         await sleep(1000);
 
-        // 3. Tìm và bấm Lưu
-        let saveBtn = document.querySelector('button#btnSaveNLT');
+        // 3. Tìm và bấm Lưu chống trùng lặp ID
+        let saveBtns = document.querySelectorAll('button#btnSaveNLT');
+        let saveBtn = Array.from(saveBtns).find(el => el.offsetParent !== null) || saveBtns[saveBtns.length - 1];
         if (saveBtn) {
             saveBtn.click();
 
